@@ -16,7 +16,7 @@ namespace CommunigateAntispamHelper
             var appSettings = config.GetSection("Settings").Get<AppSettings>();
             if (appSettings == null)
             {
-                Console.Error.WriteLine("* Unable to read appsettings file.");
+                Console.Error.WriteLine("* CommunigateAntispamHelper. Unable to read appsettings file.");
                 return;
             }
             var serviceProvider = new ServiceCollection()
@@ -28,7 +28,7 @@ namespace CommunigateAntispamHelper
             var updateService = serviceProvider.GetRequiredService<UpdateService>();
             var workerService = serviceProvider.GetRequiredService<WorkerService>();
             await updateService.UpdateDataFirstTime();
-            workerService.Print("* ToCCAddressHelper Free");
+            workerService.Print("* CommunigateAntispamHelper Free");
             await workerService.Work();
         }
     }
