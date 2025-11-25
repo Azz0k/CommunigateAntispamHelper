@@ -166,11 +166,19 @@ namespace CommunigateAntispamHelper.Services
                 if (eml.TextBody != null)
                 {
                     var textBody = System.Text.Encoding.UTF8.GetString(eml.TextBody.Body);
+                    if (emailChecker.IsThereProhibitedTextInBody(textBody))
+                    {
+                        PrintBadMessage(lineNumberStr); return;
+                    }
                 }
 
                 if (eml.HtmlBody != null)
                 {
                     var htmlBody = System.Text.Encoding.UTF8.GetString(eml.HtmlBody.Body);
+                    if (emailChecker.IsThereProhibitedTextInBody(htmlBody))
+                    {
+                        PrintBadMessage(lineNumberStr); return;
+                    }
                 }
                 PrintGoodMessage(lineNumberStr);
             }

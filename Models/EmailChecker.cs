@@ -45,6 +45,14 @@ namespace CommunigateAntispamHelper.Models
             if (fileDataStore.blackListSenderDomains.Contains(domain)) return true;
             return false;
         }
+        public bool IsThereProhibitedTextInBody(string body)
+        {
+            foreach (string line in fileDataStore.prohibitedTextInBody)
+            {
+                if (body.Contains(line)) return true;
+            }
+            return false;
+        }
 
     }
 }

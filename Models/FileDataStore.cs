@@ -18,8 +18,9 @@ namespace CommunigateAntispamHelper.Models
         public HashSet<string> blackListSenderDomains { get { return _blackListSenderDomains; } }
         private HashSet<string> _blackListSenderAddresses = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         public HashSet<string> blackListSenderAddresses {  get { return _blackListSenderAddresses; } }
-        private List<string> prohibitedTextInBody = new List<string>();
-        private List<string> prohibitedRegExInBody = new List<string>();
+        private List<string> _prohibitedTextInBody = new List<string>();
+        public List<string> prohibitedTextInBody { get { return _prohibitedTextInBody; } }
+        private List<string> _prohibitedRegExInBody = new List<string>();
         private readonly Dictionary<FileTypes, Action<List<string>>> updateHandlers;
         public FileDataStore()
         {
@@ -57,12 +58,12 @@ namespace CommunigateAntispamHelper.Models
                 },
                 { FileTypes.prohibitedTextInBodyFile, data =>
                     {
-                        prohibitedTextInBody = data;
+                        _prohibitedTextInBody = data;
                     }
                 },
                 { FileTypes.prohibitedRegExInBodyFile, data =>
                     {
-                        prohibitedRegExInBody = data;
+                        _prohibitedRegExInBody = data;
                     }
                 },
             };
