@@ -7,16 +7,11 @@ namespace CommunigateAntispamHelper.Utils
 {
     internal static class Utils
     {
-        public static string GetAddressFromToHeader(string headerTo)
+        public static void Print(string message)
         {
-            string pattern = @".*<(.*)>";
-            Match regexMatch = Regex.Match(headerTo, pattern);
-            if (regexMatch.Success)
-            {
-                string recipient = regexMatch.Groups[1].Value;
-                return recipient;
-            }
-            return "";
+            Console.WriteLine(message);
+            Console.Out.Flush();
         }
+
     }
 }

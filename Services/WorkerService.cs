@@ -1,8 +1,9 @@
 ﻿using CommunigateAntispamHelper.Models;
-using static CommunigateAntispamHelper.Utils.Utils;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
+using static CommunigateAntispamHelper.Utils.Utils;
 
 namespace CommunigateAntispamHelper.Services
 {
@@ -10,15 +11,40 @@ namespace CommunigateAntispamHelper.Services
     {
         private EmailChecker emailChecker;
         private readonly AppSettings appSettings;
+        private string goodMessage = "OK";
+        private string badMessage = "Discard";
         public WorkerService(AppSettings appSettings, EmailChecker emailChecker)
         {
             this.appSettings = appSettings;
             this.emailChecker = emailChecker;
+            var goodMessageFileName = Path.Combine(appSettings.currentDir, appSettings.goodMessageFileName);
+            var badMessageFileName = Path.Combine(appSettings.currentDir , appSettings.badMessageFileName); 
+            goodMessage = ReadFirstLineFromFile(goodMessageFileName) ?? goodMessage;
+            badMessage = ReadFirstLineFromFile(badMessageFileName) ?? badMessage;
         }
-        public void Print(string message)
+        private string? ReadFirstLineFromFile(string fileName)
         {
-            Console.WriteLine(message);
-            Console.Out.Flush();
+            try
+            {
+                using (FileStream fs = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+                using (StreamReader sr = new StreamReader(fs))
+                {
+                    string? line = sr.ReadLine();
+                    return line;
+                }
+            }
+            catch
+            {
+                return null; 
+            }
+        }
+        public void PrintGoodMessage(string lineNumber)
+        {
+            Print($"{lineNumber} {goodMessage}");
+        }
+        public void PrintBadMessage(string lineNumber)
+        {
+            Print($"{lineNumber} {badMessage}");
         }
         public async Task Work()
         {
@@ -77,54 +103,77 @@ namespace CommunigateAntispamHelper.Services
             FileInfo fileInfo = new FileInfo(file);
             if (!fileInfo.Exists)
             {
-                Print($"{lineNumberStr} OK");
+                PrintGoodMessage(lineNumberStr);
                 Print($"* CommunigateAntispamHelper: unable to read file {file}");
                 return;
             }
-            List<string> lines = new List<string>();    
+            List<string> lines = new List<string>();
             using (FileStream fs = File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (BufferedStream bs = new BufferedStream(fs))
             using (StreamReader sr = new StreamReader(bs))
             {
                 string? line;
-                bool firstEmpyLineFound = false;   
+                bool firstEmpyLineFound = false;
                 while ((line = sr.ReadLine()) != null)
-                { 
+                {
                     if (!firstEmpyLineFound && line == "")
                     {
                         firstEmpyLineFound = true;
                     }
-                    else 
+                    else
                     if (firstEmpyLineFound)
                     {
                         lines.Add(line);
                     }
+                    else
+                    {
+                        string pattern = @".*<(.*)>";
+                        if (line.StartsWith("R W "))
+                        {
+                            Match regexMatch = Regex.Match(line, pattern);
+                            if (regexMatch.Success)
+                            {
+                                string recipient = regexMatch.Groups[1].Value;
+                                if (emailChecker.IsRecipentExcluded(recipient))
+                                {
+                                    PrintGoodMessage(lineNumberStr); return;
+                                }
+                            }
+                        }
+                        if (line.StartsWith("P I "))
+                        {
+                            Match regexMatch = Regex.Match(line, pattern);
+                            if (regexMatch.Success)
+                            {
+                                string sender = regexMatch.Groups[1].Value;
+                                if (emailChecker.IsSenderWhiteListed(sender))
+                                {
+                                    PrintGoodMessage(lineNumberStr); return;
+                                }
+                                if (emailChecker.IsSenderBlackListed(sender))
+                                {
+                                    PrintBadMessage(lineNumberStr); return;    
+                                }
+
+                            }
+                        }
+                    }
                 }
-            }
-            string tempFile = System.IO.Path.GetTempPath() + Guid.NewGuid().ToString() + ".antispam";
-            System.IO.File.WriteAllLines(tempFile, lines);
-            var eml = MsgReader.Mime.Message.Load(new FileInfo(tempFile));
-            System.IO.File.Delete(tempFile);
-            if (eml.Headers == null)
-            {
-                Print($"{lineNumberStr} OK");
-                return;
-            }
-            foreach (var recipient in eml.Headers.To)
-            {
-                var to = GetAddressFromToHeader(recipient.Address);
-            }
-            if (eml.TextBody != null)
-            {
-                var textBody = System.Text.Encoding.UTF8.GetString(eml.TextBody.Body);
-            }
+                string tempFile = System.IO.Path.GetTempPath() + Guid.NewGuid().ToString() + ".antispam";
+                System.IO.File.WriteAllLines(tempFile, lines);
+                var eml = MsgReader.Mime.Message.Load(new FileInfo(tempFile));
+                System.IO.File.Delete(tempFile);
+                if (eml.TextBody != null)
+                {
+                    var textBody = System.Text.Encoding.UTF8.GetString(eml.TextBody.Body);
+                }
 
-            if (eml.HtmlBody != null)
-            {
-                var htmlBody = System.Text.Encoding.UTF8.GetString(eml.HtmlBody.Body);
+                if (eml.HtmlBody != null)
+                {
+                    var htmlBody = System.Text.Encoding.UTF8.GetString(eml.HtmlBody.Body);
+                }
+                PrintGoodMessage(lineNumberStr);
             }
-
-            
         }
     }
 }

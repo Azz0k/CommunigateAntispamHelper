@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using static CommunigateAntispamHelper.Utils.Utils;
 
 namespace CommunigateAntispamHelper
 {
@@ -28,7 +29,7 @@ namespace CommunigateAntispamHelper
             var updateService = serviceProvider.GetRequiredService<UpdateService>();
             var workerService = serviceProvider.GetRequiredService<WorkerService>();
             await updateService.UpdateDataFirstTime();
-            workerService.Print("* CommunigateAntispamHelper Free");
+            Print("* CommunigateAntispamHelper Free");
             await workerService.Work();
         }
     }
