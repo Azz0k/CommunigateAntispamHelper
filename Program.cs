@@ -25,10 +25,11 @@ namespace CommunigateAntispamHelper
                 .AddSingleton<AppSettings>(appSettings)
                 .AddSingleton<UpdateService>()
                 .AddSingleton<WorkerService>()
+                .AddSingleton<MonitoredFiles>()
                 .BuildServiceProvider();
             var updateService = serviceProvider.GetRequiredService<UpdateService>();
             var workerService = serviceProvider.GetRequiredService<WorkerService>();
-            await updateService.UpdateDataFirstTime();
+            updateService.UpdateDataFirstTime();
             Print("* CommunigateAntispamHelper Free");
             await workerService.Work();
         }
