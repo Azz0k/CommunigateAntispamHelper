@@ -12,7 +12,7 @@ namespace CommunigateAntispamHelper.Services
         private EmailChecker emailChecker;
         private readonly AppSettings appSettings;
         private string goodMessage = "OK";
-        private string badMessage = "Discard";
+        private string badMessage = "ADDHEADER \"X-SPAM-SCORE: 100 CommunigateAntispamHelper\" OK";
         public WorkerService(AppSettings appSettings, EmailChecker emailChecker)
         {
             this.appSettings = appSettings;

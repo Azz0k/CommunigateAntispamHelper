@@ -66,31 +66,31 @@ namespace CommunigateAntispamHelper.Models
             return lines;
         }
     }
+
     internal class MonitoredFiles
     {
-        private Dictionary<string, MonitoredFileOnDisk> _files = new Dictionary<string, MonitoredFileOnDisk>();
+        private List<MonitoredFileOnDisk> _files = new List<MonitoredFileOnDisk>();
         private EmailChecker emailChecker;
+        private AppSettings appSettings;
         public MonitoredFiles(AppSettings appsettings, EmailChecker emailChecker)
         {
+            this.appSettings = appsettings;
             this.emailChecker = emailChecker;
-            _files.Add(appsettings.excludedRecipientsFileName, 
-                new MonitoredFileOnDisk(Path.Combine(appsettings.currentDir, appsettings.excludedRecipientsFileName), FileTypes.excludedRecipientsFile));
-            _files.Add(appsettings.blackListSenderAddressesFileName, 
-                new MonitoredFileOnDisk(Path.Combine(appsettings.currentDir, appsettings.blackListSenderAddressesFileName), FileTypes.blackListAddressesFile));
-            _files.Add(appsettings.blackListSenderDomainsFileName, 
-                new MonitoredFileOnDisk(Path.Combine(appsettings.currentDir, appsettings.blackListSenderDomainsFileName), FileTypes.blackListDomainsFile));
-            _files.Add(appsettings.whiteListSenderAddressesFileName, 
-                new MonitoredFileOnDisk(Path.Combine(appsettings.currentDir, appsettings.whiteListSenderAddressesFileName), FileTypes.whiteListSenderAddressesFile));
-            _files.Add(appsettings.whiteListSenderDomainsFileName, 
-                new MonitoredFileOnDisk(Path.Combine(appsettings.currentDir,appsettings.whiteListSenderDomainsFileName), FileTypes.whiteListSenderDomainsFile));
-            _files.Add(appsettings.prohibitedTextInBodyFileName, 
-                new MonitoredFileOnDisk(Path.Combine(appsettings.currentDir,appsettings.prohibitedTextInBodyFileName), FileTypes.prohibitedTextInBodyFile));
-            _files.Add(appsettings.prohibitedRegExInBodyFileName, 
-                new MonitoredFileOnDisk(Path.Combine(appsettings.currentDir,appsettings.prohibitedRegExInBodyFileName), FileTypes.prohibitedRegExInBodyFile));
+            _files.Add(new MonitoredFileOnDisk(PathCombine(appsettings.excludedRecipientsFileName), FileTypes.excludedRecipientsFile));
+            _files.Add(new MonitoredFileOnDisk(PathCombine(appsettings.blackListSenderAddressesFileName), FileTypes.blackListAddressesFile));
+            _files.Add(new MonitoredFileOnDisk(PathCombine(appsettings.blackListSenderDomainsFileName), FileTypes.blackListDomainsFile));
+            _files.Add(new MonitoredFileOnDisk(PathCombine(appsettings.whiteListSenderAddressesFileName), FileTypes.whiteListSenderAddressesFile));
+            _files.Add(new MonitoredFileOnDisk(PathCombine(appsettings.whiteListSenderDomainsFileName), FileTypes.whiteListSenderDomainsFile));
+            _files.Add(new MonitoredFileOnDisk(PathCombine(appsettings.prohibitedTextInBodyFileName), FileTypes.prohibitedTextInBodyFile));
+            _files.Add(new MonitoredFileOnDisk(PathCombine(appsettings.prohibitedRegExInBodyFileName), FileTypes.prohibitedRegExInBodyFile));
+        }
+        private string PathCombine(string fileName)
+        {
+            return Path.Combine(appSettings.currentDir, fileName);
         }
         public void CheckAllFiles()
         {
-            foreach (var file in _files.Values)
+            foreach (var file in _files)
             {
                 file.CheckFile();
                 if (file.IsChanged)
