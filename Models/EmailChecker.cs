@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using static MsgReader.Outlook.Storage;
 using static CommunigateAntispamHelper.Utils.Utils;
+using System.Text.RegularExpressions;
 
 namespace CommunigateAntispamHelper.Models
 {
@@ -12,6 +13,8 @@ namespace CommunigateAntispamHelper.Models
         private bool _isUpdateAllowed = true;
         public bool isUpdateAllowed { get { return _isUpdateAllowed; } }
         private FileDataStore fileDataStore = new FileDataStore();
+        public string goodMessage { get { return fileDataStore.goodMessage; } }
+        public string badMessage { get { return fileDataStore.badMessage; } }
         public EmailChecker(AppSettings appSettings)
         {
             this.appSettings = appSettings;
@@ -58,6 +61,15 @@ namespace CommunigateAntispamHelper.Models
             foreach (string line in fileDataStore.prohibitedTextInBody)
             {
                 if (body.Contains(line)) return true;
+            }
+            return false;
+        }
+        public bool IsThereProhibitedRegexInBody(string body)
+        {
+            foreach(string line in fileDataStore.prohibitedRegExInBody)
+            {
+                Regex regex = new(line, RegexOptions.IgnoreCase | RegexOptions.Multiline);
+                if (regex.IsMatch(body)) return true;
             }
             return false;
         }

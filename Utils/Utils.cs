@@ -17,6 +17,10 @@ namespace CommunigateAntispamHelper.Utils
             return regex.IsMatch(senderDomain);
 
         }
+        public static void PrintLogMessage(string message)
+        {
+            Print($"* CommunigateAntispamHelper {message}");
+        }
         public static void Print(string message)
         {
             Console.WriteLine(message);
@@ -73,6 +77,14 @@ namespace CommunigateAntispamHelper.Utils
                 }
             }
             return null;
+        }
+        public static string DefaultGoodMessage()
+        {
+            return "OK";
+        }
+        public static string DefaultBadMessage()
+        {
+            return "ADDHEADER \"X-SPAM-SCORE: 100 CommunigateAntispamHelper\" OK";
         }
 
     }

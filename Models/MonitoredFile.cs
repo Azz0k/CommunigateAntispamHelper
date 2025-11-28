@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static CommunigateAntispamHelper.Utils.Utils;
 
 namespace CommunigateAntispamHelper.Models
 {
@@ -14,7 +15,10 @@ namespace CommunigateAntispamHelper.Models
         blackListDomainsFile, 
         excludedRecipientsFile, 
         whiteListSenderAddressesFile, 
-        whiteListSenderDomainsFile };
+        whiteListSenderDomainsFile,
+        goodMessageFile,
+        badMessageFile
+    };
     internal class MonitoredFile
     {
         public required string FullName { get; set; } 
@@ -84,6 +88,8 @@ namespace CommunigateAntispamHelper.Models
             _files.Add(new MonitoredFileOnDisk(PathCombine(appsettings.whiteListSenderDomainsFileName), FileTypes.whiteListSenderDomainsFile));
             _files.Add(new MonitoredFileOnDisk(PathCombine(appsettings.prohibitedTextInBodyFileName), FileTypes.prohibitedTextInBodyFile));
             _files.Add(new MonitoredFileOnDisk(PathCombine(appsettings.prohibitedRegExInBodyFileName), FileTypes.prohibitedRegExInBodyFile));
+            _files.Add(new MonitoredFileOnDisk(PathCombine(appSettings.goodMessageFileName), FileTypes.goodMessageFile));
+            _files.Add(new MonitoredFileOnDisk(PathCombine(appSettings.badMessageFileName), FileTypes.badMessageFile));
         }
         private string PathCombine(string fileName)
         {
@@ -98,8 +104,16 @@ namespace CommunigateAntispamHelper.Models
                 {
                     List<string> data = file.ReadAllLines();
                     if (emailChecker.isUpdateAllowed)
+                    {
                         emailChecker.UpdateStore(file.FileType, data);
+                        PrintLogMessage($"data from {file.FullName} updated");
+                        FileInfo fileInfo = new(file.FullName);
+                        file.ModifiedTime = fileInfo.LastWriteTime;
+                    }
+                        
+                    
                 }
+                
             }
         }
 

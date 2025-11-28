@@ -24,6 +24,11 @@ namespace CommunigateAntispamHelper.Models
         private List<string> _prohibitedTextInBody = [];
         public List<string> prohibitedTextInBody { get { return _prohibitedTextInBody; } }
         private List<string> _prohibitedRegExInBody = [];
+        public List<string> prohibitedRegExInBody { get { return _prohibitedRegExInBody; }  }
+        private string _goodMessage = string.Empty;
+        public string goodMessage { get { return _goodMessage; } }
+        private string _badMessage = string.Empty;
+        public string badMessage {  get { return _badMessage; } }
         private readonly Dictionary<FileTypes, Action<List<string>>> updateHandlers;
         public FileDataStore()
         {
@@ -71,6 +76,16 @@ namespace CommunigateAntispamHelper.Models
                         _prohibitedRegExInBody = data;
                     }
                 },
+                { FileTypes.goodMessageFile, data =>
+                    {
+                        _goodMessage = data.Count > 0 ? data[0] : "";
+                    }
+                },
+                { FileTypes.badMessageFile, data =>
+                    {
+                        _badMessage = data.Count > 0 ? data[0] : "";
+                    }
+                }
             };
 
         }

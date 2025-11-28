@@ -8,30 +8,14 @@ namespace CommunigateAntispamHelper.Services
     {
         private EmailChecker emailChecker;
         private readonly AppSettings appSettings;
-        private string goodMessage = "OK";
-        private string badMessage = "ADDHEADER \"X-SPAM-SCORE: 100 CommunigateAntispamHelper\" OK";
+        private string goodMessage { get { return emailChecker.goodMessage != "" ? emailChecker.goodMessage : DefaultGoodMessage(); } }
+        private string badMessage { get { return emailChecker.badMessage != "" ? emailChecker.badMessage : DefaultBadMessage(); } }
         public WorkerService(AppSettings appSettings, EmailChecker emailChecker)
         {
             this.appSettings = appSettings;
             this.emailChecker = emailChecker;
             var goodMessageFileName = Path.Combine(appSettings.currentDir, appSettings.goodMessageFileName);
             var badMessageFileName = Path.Combine(appSettings.currentDir , appSettings.badMessageFileName); 
-            goodMessage = ReadFirstLineFromFile(goodMessageFileName) ?? goodMessage;
-            badMessage = ReadFirstLineFromFile(badMessageFileName) ?? badMessage;
-        }
-        private string? ReadFirstLineFromFile(string fileName)
-        {
-            try
-            {
-                using FileStream fs = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read);
-                using StreamReader sr = new(fs);
-                string? line = sr.ReadLine();
-                return line;
-            }
-            catch
-            {
-                return null; 
-            }
         }
         public void PrintGoodMessage(string lineNumber)
         {
@@ -99,7 +83,7 @@ namespace CommunigateAntispamHelper.Services
             if (!fileInfo.Exists)
             {
                 PrintGoodMessage(lineNumberStr);
-                Print($"* CommunigateAntispamHelper: file is not exists {file}");
+                PrintLogMessage($"{file} file does not exists");
                 return false;
             }
             return true;
@@ -151,7 +135,7 @@ namespace CommunigateAntispamHelper.Services
             }
             catch
             {
-                Print($"* CommunigateAntispamHelper cannot process message {file}");
+                PrintLogMessage($"cannot process message {file}");
             }
             PrintGoodMessage(lineNumberStr);
         }
