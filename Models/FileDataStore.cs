@@ -3,24 +3,27 @@ using System.Collections.Generic;
 using System.Data;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
+using System.Linq;
 
 namespace CommunigateAntispamHelper.Models
 {
     internal class FileDataStore
     {
-        private HashSet<string> _whiteListSenderDomains = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private HashSet<string> _whiteListSenderDomains = new(StringComparer.OrdinalIgnoreCase);
         public HashSet<string> whiteListSenderDomains { get { return _whiteListSenderDomains; } }
-        private HashSet<string> _whiteListSenderAddresses = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private HashSet<string> _whiteListSenderAddresses = new(StringComparer.OrdinalIgnoreCase);
         public HashSet<string> whiteListSenderAddresses  { get { return _whiteListSenderAddresses; } }
-        private HashSet<string> _excludedRecipients = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private HashSet<string> _excludedRecipients = new(StringComparer.OrdinalIgnoreCase);
         public HashSet<string> excludedRecipients { get { return _excludedRecipients; } }
-        private HashSet<string> _blackListSenderDomains = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private HashSet<string> _blackListSenderDomains = new(StringComparer.OrdinalIgnoreCase);
         public HashSet<string> blackListSenderDomains { get { return _blackListSenderDomains; } }
-        private HashSet<string> _blackListSenderAddresses = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private List<string> _blackListWildcardSenderDomains = [];
+        public List<string> blackListWildcardSenderDomains { get { return _blackListWildcardSenderDomains; } }
+        private HashSet<string> _blackListSenderAddresses = new(StringComparer.OrdinalIgnoreCase);
         public HashSet<string> blackListSenderAddresses {  get { return _blackListSenderAddresses; } }
-        private List<string> _prohibitedTextInBody = new List<string>();
+        private List<string> _prohibitedTextInBody = [];
         public List<string> prohibitedTextInBody { get { return _prohibitedTextInBody; } }
-        private List<string> _prohibitedRegExInBody = new List<string>();
+        private List<string> _prohibitedRegExInBody = [];
         private readonly Dictionary<FileTypes, Action<List<string>>> updateHandlers;
         public FileDataStore()
         {
@@ -47,7 +50,9 @@ namespace CommunigateAntispamHelper.Models
                 { FileTypes.blackListDomainsFile, data =>
                     {
                         _blackListSenderDomains.Clear();
-                        _blackListSenderDomains.UnionWith(data);
+                        _blackListSenderDomains.UnionWith(data.Where(e => !e.Contains("*")));
+                        _blackListWildcardSenderDomains.Clear();
+                        _blackListWildcardSenderDomains.AddRange(data.Where(e => e.Contains("*")));
                     }
                 },
                 { FileTypes.blackListAddressesFile, data =>

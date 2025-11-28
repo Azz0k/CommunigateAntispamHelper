@@ -1,16 +1,6 @@
 ﻿using CommunigateAntispamHelper.Models;
-using MimeKit;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.RegularExpressions;
-using Ude;
 using static CommunigateAntispamHelper.Utils.Utils;
-using static MsgReader.Outlook.Storage;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace CommunigateAntispamHelper.Services
 {
@@ -33,12 +23,10 @@ namespace CommunigateAntispamHelper.Services
         {
             try
             {
-                using (FileStream fs = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read))
-                using (StreamReader sr = new StreamReader(fs))
-                {
-                    string? line = sr.ReadLine();
-                    return line;
-                }
+                using FileStream fs = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+                using StreamReader sr = new(fs);
+                string? line = sr.ReadLine();
+                return line;
             }
             catch
             {
@@ -107,7 +95,7 @@ namespace CommunigateAntispamHelper.Services
         }
         public bool EnsureFileExists(string file, string lineNumberStr)
         {
-            FileInfo fileInfo = new FileInfo(file);
+            FileInfo fileInfo = new(file);
             if (!fileInfo.Exists)
             {
                 PrintGoodMessage(lineNumberStr);
@@ -121,45 +109,43 @@ namespace CommunigateAntispamHelper.Services
             if (!EnsureFileExists(file, lineNumberStr)) return;
             try
             {
-                using (FileStream fs = File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read))
-                using (var br = new BinaryReader(fs, Encoding.ASCII, leaveOpen: true))
+                using FileStream fs = File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
+                using var br = new BinaryReader(fs, Encoding.ASCII, leaveOpen: true);
+                string? line = null;
+                while ((line = ReadAsciiLine(br)) != null)
                 {
-                    string? line = null;
-                    while ((line = ReadAsciiLine(br)) != null)
+                    if (line == "") break;
+                    if (emailChecker.IsRecipentExcluded(GetRecipient(line)))
                     {
-                        if (line == "") break;
-                        if (emailChecker.IsRecipentExcluded(GetRecipient(line)))
-                        {
-                            PrintGoodMessage(lineNumberStr); return;
-                        }
-                        string? sender = GetSender(line);
-                        if (emailChecker.IsSenderWhiteListed(sender))
-                        {
-                            PrintGoodMessage(lineNumberStr); return;
-                        }
-                        if (emailChecker.IsSenderBlackListed(sender))
-                        {
-                            PrintBadMessage(lineNumberStr); return;
-                        }
+                        PrintGoodMessage(lineNumberStr); return;
                     }
-                    var eml = MsgReader.Mime.Message.Load(fs);
-                    if (eml.TextBody != null && eml.TextBody.ContentType.CharSet != null)
+                    string? sender = GetSender(line);
+                    if (emailChecker.IsSenderWhiteListed(sender))
                     {
-                        Encoding CodePage = Encoding.GetEncoding(eml.TextBody.ContentType.CharSet);
-                        string textBody = CodePage.GetString(eml.TextBody.Body);
-                        if (emailChecker.IsThereProhibitedTextInBody(textBody))
-                        {
-                            PrintBadMessage(lineNumberStr); return;
-                        }
+                        PrintGoodMessage(lineNumberStr); return;
                     }
-                    if (eml.HtmlBody != null && eml.HtmlBody.ContentType.CharSet != null)
+                    if (emailChecker.IsSenderBlackListed(sender))
                     {
-                        Encoding CodePage = Encoding.GetEncoding(eml.HtmlBody.ContentType.CharSet);
-                        var htmlBody = CodePage.GetString(eml.HtmlBody.Body);
-                        if (emailChecker.IsThereProhibitedTextInBody(htmlBody))
-                        {
-                            PrintBadMessage(lineNumberStr); return;
-                        }
+                        PrintBadMessage(lineNumberStr); return;
+                    }
+                }
+                var eml = MsgReader.Mime.Message.Load(fs);
+                if (eml.TextBody != null && eml.TextBody.ContentType.CharSet != null)
+                {
+                    Encoding CodePage = Encoding.GetEncoding(eml.TextBody.ContentType.CharSet);
+                    string textBody = CodePage.GetString(eml.TextBody.Body);
+                    if (emailChecker.IsThereProhibitedTextInBody(textBody))
+                    {
+                        PrintBadMessage(lineNumberStr); return;
+                    }
+                }
+                if (eml.HtmlBody != null && eml.HtmlBody.ContentType.CharSet != null)
+                {
+                    Encoding CodePage = Encoding.GetEncoding(eml.HtmlBody.ContentType.CharSet);
+                    var htmlBody = CodePage.GetString(eml.HtmlBody.Body);
+                    if (emailChecker.IsThereProhibitedTextInBody(htmlBody))
+                    {
+                        PrintBadMessage(lineNumberStr); return;
                     }
                 }
             }

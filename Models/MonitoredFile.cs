@@ -60,7 +60,8 @@ namespace CommunigateAntispamHelper.Models
                 string? line;
                 while ((line = sr.ReadLine()) != null)
                 {
-                    lines.Add(line.Trim());
+                    line = line.Trim();
+                    if (line != "") lines.Add(line);
                 }
             }
             return lines;

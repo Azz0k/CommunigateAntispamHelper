@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using static MsgReader.Outlook.Storage;
+using static CommunigateAntispamHelper.Utils.Utils;
 
 namespace CommunigateAntispamHelper.Models
 {
@@ -46,6 +47,10 @@ namespace CommunigateAntispamHelper.Models
             if (fileDataStore.blackListSenderAddresses.Contains(email)) return true;
             string domain = email.Substring(email.IndexOf('@') + 1);
             if (fileDataStore.blackListSenderDomains.Contains(domain)) return true;
+            foreach (var domainPattern in fileDataStore.blackListWildcardSenderDomains)
+            {
+                if (IsEqualWithWildcard(email, domainPattern)) return true;
+            }
             return false;
         }
         public bool IsThereProhibitedTextInBody(string body)

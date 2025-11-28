@@ -10,6 +10,13 @@ namespace CommunigateAntispamHelper.Utils
 {
     internal static class Utils
     {
+        public static bool IsEqualWithWildcard(string senderDomain, string domainPattern)
+        {
+            string regexPattern = $"^{Regex.Escape(domainPattern).Replace(@"\*", ".*")}$";
+            Regex regex = new(regexPattern, RegexOptions.IgnoreCase);
+            return regex.IsMatch(senderDomain);
+
+        }
         public static void Print(string message)
         {
             Console.WriteLine(message);
