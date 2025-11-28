@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="../CGPAHTests/CGPAHTests.csproj" Id="729faab9-53d5-407f-8139-f28a67d244a4" />
   <Project Path="CommunigateAntispamHelper.csproj" />
 </Solution>
