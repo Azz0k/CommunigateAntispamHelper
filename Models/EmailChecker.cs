@@ -27,19 +27,22 @@ namespace CommunigateAntispamHelper.Models
         {
             fileDataStore.UpdateStore(fileType, data);
         }
-        public bool IsRecipentExcluded(string email)
+        public bool IsRecipentExcluded(string? email)
         {
+            if (email == null) return false;
             return fileDataStore.excludedRecipients.Contains(email);
         }
-        public bool IsSenderWhiteListed(string email)
+        public bool IsSenderWhiteListed(string? email)
         {
+            if (email == null) return false;
             if (fileDataStore.whiteListSenderAddresses.Contains(email)) return true;
             string domain = email.Substring(email.IndexOf('@') + 1);
             if (fileDataStore.whiteListSenderDomains.Contains(domain)) return true;
             return false;
         }
-        public bool IsSenderBlackListed(string email)
+        public bool IsSenderBlackListed(string? email)
         {
+            if (email == null) return false;
             if (fileDataStore.blackListSenderAddresses.Contains(email)) return true;
             string domain = email.Substring(email.IndexOf('@') + 1);
             if (fileDataStore.blackListSenderDomains.Contains(domain)) return true;

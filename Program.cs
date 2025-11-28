@@ -12,6 +12,7 @@ namespace CommunigateAntispamHelper
     {
         static async System.Threading.Tasks.Task Main(string[] args)
         {
+            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
             var builder = new ConfigurationBuilder().AddJsonFile($"appsettings.json");
             IConfiguration config = builder.Build();
             var appSettings = config.GetSection("Settings").Get<AppSettings>();
