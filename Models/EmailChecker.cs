@@ -47,12 +47,26 @@ namespace CommunigateAntispamHelper.Models
         public bool IsSenderBlackListed(string? email)
         {
             if (email == null) return false;
-            if (fileDataStore.blackListSenderAddresses.Contains(email)) return true;
+            if (fileDataStore.blackListSenderAddresses.Contains(email))
+            {
+                PrintLogMessage($"blacklisted sender found: {email}");
+                return true;
+            }
+                
             string domain = email.Substring(email.IndexOf('@') + 1);
-            if (fileDataStore.blackListSenderDomains.Contains(domain)) return true;
+            if (fileDataStore.blackListSenderDomains.Contains(domain))
+            {
+                PrintLogMessage($"blacklisted domain found: {domain}");
+                return true;
+            }
+                
             foreach (var domainPattern in fileDataStore.blackListWildcardSenderDomains)
             {
-                if (IsEqualWithWildcard(email, domainPattern)) return true;
+                if (IsEqualWithWildcard(email, domainPattern))
+                {
+                    PrintLogMessage($"blacklisted domain found: {domain}");
+                    return true;
+                }
             }
             return false;
         }
@@ -60,7 +74,11 @@ namespace CommunigateAntispamHelper.Models
         {
             foreach (string line in fileDataStore.prohibitedTextInBody)
             {
-                if (body.Contains(line)) return true;
+                if (body.Contains(line))
+                {
+                    PrintLogMessage($"blacklisted line found: {line}");
+                    return true;
+                }
             }
             return false;
         }
@@ -69,7 +87,11 @@ namespace CommunigateAntispamHelper.Models
             foreach(string line in fileDataStore.prohibitedRegExInBody)
             {
                 Regex regex = new(line, RegexOptions.IgnoreCase | RegexOptions.Multiline);
-                if (regex.IsMatch(body)) return true;
+                if (regex.IsMatch(body))
+                {
+                    PrintLogMessage($"blacklisted regex found: {line}");
+                    return true;
+                }
             }
             return false;
         }
